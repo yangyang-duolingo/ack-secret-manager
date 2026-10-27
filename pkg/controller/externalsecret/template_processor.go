@@ -666,24 +666,14 @@ func (stp *SimpleTemplateProcessor) processLiteralTemplate(
 	return result, nil
 }
 
-// isValidAnnotationKey validates annotation key format according to Kubernetes standards
+// isValidAnnotationKey mirrors apimachinery's ValidateAnnotations, which
+// lowercases the key before checking it as a qualified name.
 func (stp *SimpleTemplateProcessor) isValidAnnotationKey(key string) bool {
-	return stp.validatePrefixedKey(key, 253) // Total max 253 chars for prefixed keys (DNS_SUBDOMAIN + / + DNS_LABEL)
+	return len(validation.IsQualifiedName(strings.ToLower(key))) == 0
 }
 
-// isValidLabelKey validates label key format according to Kubernetes standards
+// isValidLabelKey mirrors apimachinery's ValidateLabelName.
 func (stp *SimpleTemplateProcessor) isValidLabelKey(key string) bool {
-	return stp.validatePrefixedKey(key, 253) // Total max 253 chars for prefixed keys (DNS_SUBDOMAIN + / + DNS_LABEL)
-}
-
-// validatePrefixedKey validates optionally-prefixed label and annotation keys
-// with the same rules the Kubernetes API server applies: an optional DNS
-// subdomain prefix, then a name of at most 63 characters that starts and ends
-// with [A-Za-z0-9] and may contain '-', '_' and '.' in between.
-func (stp *SimpleTemplateProcessor) validatePrefixedKey(key string, maxLength int) bool {
-	if len(key) == 0 || len(key) > maxLength {
-		return false
-	}
 	return len(validation.IsQualifiedName(key)) == 0
 }
 
